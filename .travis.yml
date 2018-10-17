@@ -1,5 +1,8 @@
 language: go
 
+sudo: false
+dist: trusty
+
 go:
   - "1.11.x"
   - master
@@ -8,3 +11,4 @@ install: make build
 
 env:
  - GO111MODULE=on
+
