@@ -21,14 +21,20 @@ func main() {
 	var noteD NoteData
 	var err error
 	noteD.Date = time.Now()
-	noteD.Title = strings.Join(os.Args[1:], " ")
+	noteD.Title = strings.TrimSpace(strings.Join(os.Args[1:], " "))
+
+	if noteD.Title == "" {
+		fmt.Println("Title is required")
+		usage()
+		os.Exit(1)
+	}
+
 	fname := strings.ToLower(strings.Join(os.Args[1:], "-")) + ".md"
-	fmt.Println(noteD)
-	fmt.Println(fname)
 
 	ed := os.Getenv("EDITOR")
 	if ed == "" {
 		fmt.Println("error: $EDITOR not set.")
+		usage()
 		os.Exit(1)
 	}
 
@@ -39,10 +45,12 @@ func main() {
 		writer, err = os.Create(fname)
 		if err != nil {
 			fmt.Println("error: ", err)
+			usage()
 			os.Exit(1)
 		}
 	case error:
 		fmt.Println("error: ", err)
+		usage()
 		os.Exit(1)
 	default:
 		note.RunEditor(ed, fname)
@@ -51,26 +59,30 @@ func main() {
 
 	defer writer.Close()
 
-	t, err := template.New("basic").Parse(basicNote)
+	t, err := template.New("basic").Funcs(note.Tfuncs).Parse(note.BasicTmpl)
 	if err != nil {
 		fmt.Println("error: ", err)
+		usage()
 		os.Exit(1)
 	}
 
 	err = t.Execute(writer, noteD)
 	if err != nil {
 		fmt.Println("error: ", err)
+		usage()
 		os.Exit(1)
 	}
 
 	note.RunEditor(ed, fname)
+	fmt.Println(fname)
 }
 
-var basicNote = `+++
-created_at = "{{ .Date }}"
-modified_at = {{ .Date }}""
-title = "{{ .Title }}"
-+++
+func usage() {
+	var usage string = `
+Note is a templating tool for note taking.
 
-{{ .Content }}
+Usage:
+	note <Title of note>
 `
+	fmt.Println(usage)
+}
