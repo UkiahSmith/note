@@ -16,6 +16,7 @@ Note makes it easier to take notes by reading a template file, populating it wit
 
 ### Usage
 
+```
 Usage:
         note [options] <Title of note>
 
@@ -34,9 +35,12 @@ Note:
                 2006-01-02T15:04:05Z07:00
                 2006-01-02 15:04:05
                 2006-01-02
+```
 
 
 ### Default template
+
+The default template is built into note itself, and will be used unless another template is specified on the command line by using the `-t` or `--template` flag.
 
 ```
 +++
@@ -50,10 +54,21 @@ modified_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
 
 ### Creating your own template
 
-It is simple enough to create your own template. 
+It is straight forward enough to create your own template. Note uses the [Golang templates](https://golang.org/pkg/text/template/) format. 
 
 1. Create a text file, and use any of the available template values
 2. Run `note -t mytemplate.txt` 
+
+**Example custom template***
+
+```
+Title: {{ .Title }}
+Date: {{ dateFormat "2 January 2006" .Date }}
+
+{{ .Content }}
+```
+
+While most of the time the `.Content` value will most ofent be empty it is useful to include it for the rare times when text is passed in with the `--content` flag.
 
 #### Available template values
 
