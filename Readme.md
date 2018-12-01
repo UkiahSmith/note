@@ -59,7 +59,7 @@ It is straight forward enough to create your own template. Note uses the [Golang
 1. Create a text file, and use any of the available template values
 2. Run `note -t mytemplate.txt` 
 
-**Example custom template***
+**Example custom template**
 
 ```
 Title: {{ .Title }}
@@ -68,7 +68,7 @@ Date: {{ dateFormat "2 January 2006" .Date }}
 {{ .Content }}
 ```
 
-While most of the time the `.Content` value will most ofent be empty it is useful to include it for the rare times when text is passed in with the `--content` flag.
+Most of the time the `.Content` value will be empty, however it is still useful to include it for the rare times when text is passed in with the `--content` flag.
 
 #### Available template values
 
