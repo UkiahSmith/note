@@ -1,7 +1,7 @@
 all: build
 
 build:
-	go build ./cmd/note
+	go build -o note ./cmd/note
 
 clean:
 	go clean ./...
