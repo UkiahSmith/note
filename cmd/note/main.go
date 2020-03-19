@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +14,10 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+const (
+	exitFail = 1
+)
+
 type NoteData struct {
 	Date      time.Time
 	Title     string
@@ -21,6 +26,13 @@ type NoteData struct {
 }
 
 func main() {
+	if err := run(os.Args, os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(exitFail)
+	}
+}
+
+func run(args []string, stdout io.Writer) error {
 	var noteD NoteData
 	var fset flag.FlagSet
 	var err error
@@ -52,7 +64,7 @@ Note:
 	fset.StringVar(&noteD.Content, "content", "", "Use this to pre-populate the content variable in a template.")
 	var tempDate *string = fset.String("date", "", "Use this to pre-populate the date variable in a template.")
 
-	fset.Parse(os.Args[1:])
+	fset.Parse(args[1:])
 
 	if noteD.Title == "" {
 		noteD.Title = strings.TrimSpace(strings.Join(fset.Args(), " "))
@@ -60,8 +72,7 @@ Note:
 
 	if noteD.Title == "" {
 		fset.Usage()
-		fmt.Println("\nerror: Title is required")
-		os.Exit(1)
+		return errors.New("error: Title is required")
 	}
 
 	if noteD.TitleSlug == "" {
@@ -92,8 +103,7 @@ Note:
 	ed := os.Getenv("EDITOR")
 	if ed == "" {
 		fset.Usage()
-		fmt.Println("error: $EDITOR not set.")
-		os.Exit(1)
+		return errors.New("error: $EDITOR not set.")
 	}
 
 	var writer io.WriteCloser
@@ -103,16 +113,14 @@ Note:
 		writer, err = os.Create(fname)
 		if err != nil {
 			fset.Usage()
-			fmt.Println("error: ", err)
-			os.Exit(1)
+			return fmt.Errorf("error with the file: %w", err)
 		}
 	case error:
 		fset.Usage()
-		fmt.Println("error: ", err)
-		os.Exit(1)
+		return fmt.Errorf("error with the file: %w", err)
 	default:
 		note.RunEditor(ed, fname)
-		return
+		return nil
 	}
 
 	defer writer.Close()
@@ -125,17 +133,17 @@ Note:
 	}
 	if err != nil {
 		fset.Usage()
-		fmt.Println("error: ", err)
-		os.Exit(1)
+		return fmt.Errorf("error finding template: %w", err)
 	}
 
 	err = tmpl.Execute(writer, noteD)
 	if err != nil {
 		fset.Usage()
-		fmt.Println("error: ", err)
-		os.Exit(1)
+		return fmt.Errorf("error executing template: %w", err)
 	}
 
 	note.RunEditor(ed, fname)
 	fmt.Println("Created file: ", fname)
+
+	return nil
 }
