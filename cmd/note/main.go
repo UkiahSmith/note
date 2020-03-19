@@ -38,16 +38,17 @@ func run(args []string, stdout io.Writer) error {
 	var err error
 
 	fset.Usage = func() {
-		fmt.Println(`
+		fmt.Print(`
 Note is a templating tool for note taking.
 
 Usage:
 	note [options] <Title of note>
 
 Options:
+
 `)
 		fset.PrintDefaults()
-		fmt.Println(`
+		fmt.Print(`
 Note:
 	The title flag _or_ title arguments is required.
 
@@ -55,6 +56,7 @@ Note:
 		2006-01-02T15:04:05Z07:00
 		2006-01-02 15:04:05
 		2006-01-02
+
 `)
 	}
 
