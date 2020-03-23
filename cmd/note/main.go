@@ -66,7 +66,10 @@ Note:
 	fset.StringVar(&noteD.Content, "content", "", "Use this to pre-populate the content variable in a template.")
 	var tempDate *string = fset.String("date", "", "Use this to pre-populate the date variable in a template.")
 
-	fset.Parse(args[1:])
+	err = fset.Parse(args[1:])
+	if err != nil {
+		log.Fatalf("error parsing arguments: %v", err)
+	}
 
 	if noteD.Title == "" {
 		noteD.Title = strings.TrimSpace(strings.Join(fset.Args(), " "))
@@ -92,6 +95,9 @@ Note:
 				t, err = time.Parse("2006-01-02 15:04:05", *tempDate)
 				if err != nil {
 					t, err = time.Parse("2006-01-02", *tempDate)
+					if err != nil {
+						log.Printf("error parsing time format 2006-01-02: %v", err)
+					}
 				}
 			}
 			if !t.IsZero() {
