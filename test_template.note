@@ -1,0 +1,6 @@
++++ #  {{ dateFormat "20060102" .Date }}__{{ makeSlug .Title }}.md
+title="{{ .Title }}"
+date_rfc3339="{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
+custom_value="foo"
++++
+{{ .Content }}

@@ -1,0 +1,6 @@
++++
+title="{{ .Title }}"
+date_rfc3339="{{ dateFormat time.RFC3339 .Date }}"
+custom_value="foo"
++++
+{{ .Content }}

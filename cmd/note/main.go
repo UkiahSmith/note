@@ -4,14 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/gosimple/slug"
 	flag "github.com/spf13/pflag"
+	"github.com/ukiahsmith/duolog"
 	"github.com/ukiahsmith/note"
 )
 
@@ -19,22 +18,17 @@ const (
 	exitFail = 1
 )
 
-type NoteData struct {
-	Date      time.Time
-	Title     string
-	TitleSlug string
-	Content   string
-}
+var log = duolog.New(os.Stderr, "Note", 0)
 
 func main() {
 	if err := run(os.Args, os.Stdout); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		log.Info(err)
 		os.Exit(exitFail)
 	}
 }
 
 func run(args []string, stdout io.Writer) error {
-	var noteD NoteData
+	var noteD note.Data
 	var fset flag.FlagSet
 	var err error
 
@@ -62,6 +56,7 @@ Note:
 	}
 
 	var templateFile *string = fset.StringP("template", "t", "", "The file to use as a template")
+	var filenameTemplate *string = fset.StringP("filename", "", note.DefaultFilenameTmpl, "A valid Go template used to format the note's filename. e.g. {{ makeSlug .Title }}.md")
 	fset.StringVar(&noteD.Title, "title", "", "Use this to pre-populate the title variable in a template.")
 	fset.StringVar(&noteD.TitleSlug, "slug", "", "Use this to pre-populate the slug variable.")
 	fset.StringVar(&noteD.Content, "content", "", "Use this to pre-populate the content variable in a template.")
@@ -69,7 +64,8 @@ Note:
 
 	err = fset.Parse(args[1:])
 	if err != nil {
-		log.Fatalf("error parsing arguments: %v", err)
+		log.Infof("error parsing arguments: %v", err)
+		os.Exit(1)
 	}
 
 	if noteD.Title == "" {
@@ -82,9 +78,9 @@ Note:
 	}
 
 	if noteD.TitleSlug == "" {
-		noteD.TitleSlug = slug.Make(noteD.Title)
+		noteD.TitleSlug = note.MakeSlug(noteD.Title)
 	} else {
-		noteD.TitleSlug = slug.Make(noteD.TitleSlug)
+		noteD.TitleSlug = note.MakeSlug(noteD.TitleSlug)
 	}
 
 	{
@@ -97,7 +93,7 @@ Note:
 				if err != nil {
 					t, err = time.Parse("2006-01-02", *tempDate)
 					if err != nil {
-						log.Printf("error parsing time format 2006-01-02: %v", err)
+						log.Infof("error parsing time format 2006-01-02: %v", err)
 					}
 				}
 			}
@@ -107,12 +103,37 @@ Note:
 		}
 	}
 
-	fname := noteD.TitleSlug + ".md"
-
 	ed := os.Getenv("EDITOR")
 	if ed == "" {
 		fset.Usage()
 		return errors.New("error: $EDITOR not set.")
+	}
+
+	// use the supplied template, or fallback to the default template
+	var tmpl *template.Template
+	if *templateFile == "" {
+		tmpl, err = template.New("note").Funcs(note.Tfuncs).Parse(note.DefaultTmpl)
+	} else {
+		tmpl, err = template.New(*templateFile).Funcs(note.Tfuncs).ParseFiles(*templateFile)
+	}
+	if err != nil {
+		fset.Usage()
+		return fmt.Errorf("error finding template: %w", err)
+	}
+
+	// use the supplied filename-template, then fallback to a filename-template
+	// in the template, then fallback to teh defaultly formatted filename.
+	var fname string
+	if *templateFile != "" {
+		fname = note.FilenameFromFile(*templateFile, noteD)
+		log.Debugf("got to using custom template with -t, fname is \"%s\" after being set with note.FilenameFromFile", fname)
+	} else {
+		fname, err = note.FilenameFromTemplateStr(*filenameTemplate, noteD) // Which is basically just note.DefaultFilenameTmpl
+		if err != nil {
+			fset.Usage()
+			log.Debugf("error with default filenameTemplate: %s", err)
+			return err
+		}
 	}
 
 	var writer io.WriteCloser
@@ -122,7 +143,7 @@ Note:
 		writer, err = os.Create(fname)
 		if err != nil {
 			fset.Usage()
-			return fmt.Errorf("error with the file: %w", err)
+			return fmt.Errorf("os.PathError with file %s : %w", fname, err)
 		}
 	case error:
 		fset.Usage()
@@ -133,17 +154,6 @@ Note:
 	}
 
 	defer writer.Close()
-
-	var tmpl *template.Template
-	if *templateFile == "" {
-		tmpl, err = template.New("note").Funcs(note.Tfuncs).Parse(note.BasicTmpl)
-	} else {
-		tmpl, err = template.New(*templateFile).Funcs(note.Tfuncs).ParseFiles(*templateFile)
-	}
-	if err != nil {
-		fset.Usage()
-		return fmt.Errorf("error finding template: %w", err)
-	}
 
 	err = tmpl.Execute(writer, noteD)
 	if err != nil {

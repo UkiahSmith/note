@@ -4,3 +4,5 @@ github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be h1:ta7tUOvsPHV
 github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be/go.mod h1:MIDFMn7db1kT65GmV94GzpX9Qdi7N/pQlwb+AN8wh+Q=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
 github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
+github.com/ukiahsmith/duolog v0.2.0 h1:QFgtZTnquyHdma5xGmJ8miS+6IDSOCfXwfMOmArJbI4=
+github.com/ukiahsmith/duolog v0.2.0/go.mod h1:D6o9x+gpwnZaY1+7WD4VTpToqKPunC/xw8JL+qhFUHM=

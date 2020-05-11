@@ -38,12 +38,12 @@ Note:
 ```
 
 
-### Default template
+### Default note template
 
-The default template is built into note itself, and will be used unless another template is specified on the command line by using the `-t` or `--template` flag.
+The default template is built into note itself, and will be used unless another template is specified on the command line by using the `-t` or `--template` flag. The default note template uses TOML structured data for frontmatter.
 
 ```
-+++
++++ # {{ makeSlug .Title }}.md
 title = "{{ .Title }}"
 created_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
 modified_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
@@ -51,6 +51,22 @@ modified_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
 
 {{ .Content }}
 ```
+
+
+### Filename template
+
+The name used for the file can be customized using a template. This filename-template is defined on the very first line of the note template. It uses the Go template syntax, and is preceeded by a # mark.
+
+```
++++ # {{ dateFormat "20060102" .Date }}__{{ makeSlug .Title }}.md
+title = "{{ .Title }}"
+created_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
+modified_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
++++
+
+{{ .Content }}
+```
+
 
 ### Creating your own template
 
