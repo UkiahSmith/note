@@ -56,9 +56,8 @@ Note:
 	}
 
 	var templateFile *string = fset.StringP("template", "t", "", "The file to use as a template")
-	var filenameTemplate *string = fset.StringP("filename", "", note.DefaultFilenameTmpl, "A valid Go template used to format the note's filename. e.g. {{ makeSlug .Title }}.md")
+	var filenameTemplate *string = fset.StringP("filename", "", "", "A valid Go template used to format the note's filename. e.g. {{ .TitleSlug }}.md")
 	fset.StringVar(&noteD.Title, "title", "", "Use this to pre-populate the title variable in a template.")
-	fset.StringVar(&noteD.TitleSlug, "slug", "", "Use this to pre-populate the slug variable.")
 	fset.StringVar(&noteD.Content, "content", "", "Use this to pre-populate the content variable in a template.")
 	var tempDate *string = fset.String("date", "", "Use this to pre-populate the date variable in a template.")
 
@@ -75,12 +74,6 @@ Note:
 	if noteD.Title == "" {
 		fset.Usage()
 		return errors.New("error: Title is required")
-	}
-
-	if noteD.TitleSlug == "" {
-		noteD.TitleSlug = note.MakeSlug(noteD.Title)
-	} else {
-		noteD.TitleSlug = note.MakeSlug(noteD.TitleSlug)
 	}
 
 	{
@@ -122,13 +115,24 @@ Note:
 	}
 
 	// use the supplied filename-template, then fallback to a filename-template
-	// in the template, then fallback to teh defaultly formatted filename.
+	// in the note template, then fallback to the defaultly formatted filename.
 	var fname string
-	if *templateFile != "" {
-		fname = note.FilenameFromFile(*templateFile, noteD)
-		log.Debugf("got to using custom template with -t, fname is \"%s\" after being set with note.FilenameFromFile", fname)
-	} else {
-		fname, err = note.FilenameFromTemplateStr(*filenameTemplate, noteD) // Which is basically just note.DefaultFilenameTmpl
+	switch {
+	case *filenameTemplate != "":
+		fname, err = note.FilenameFromTemplateStr(*filenameTemplate, noteD)
+		if err != nil {
+			fset.Usage()
+			log.Debugf("error with default filenameTemplate: %s", err)
+			return err
+		}
+	case *templateFile != "":
+		if *templateFile != "" {
+			// returns a filename using the note.DefaultFilenameTmpl if there is no valid filename-template in the note-template.
+			fname = note.FilenameFromFile(*templateFile, noteD)
+			log.Debugf("got to using custom template with -t, fname is \"%s\" after being set with note.FilenameFromFile", fname)
+		}
+	default:
+		fname, err = note.FilenameFromTemplateStr(note.DefaultFilenameTmpl, noteD)
 		if err != nil {
 			fset.Usage()
 			log.Debugf("error with default filenameTemplate: %s", err)

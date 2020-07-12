@@ -6,16 +6,20 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/gosimple/slug"
 	"github.com/ukiahsmith/duolog"
 )
 
 var log = duolog.New(os.Stdout, "Note", 0)
 
 type Data struct {
-	Date      time.Time
-	Title     string
-	TitleSlug string
-	Content   string
+	Date    time.Time
+	Title   string
+	Content string
+}
+
+func (d Data) TitleSlug() string {
+	return slug.Make(d.Title)
 }
 
 func RunEditor(editor, filename string) {

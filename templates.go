@@ -12,7 +12,7 @@ import (
 	"github.com/gosimple/slug"
 )
 
-var DefaultTmpl = `+++ # {{ makeSlug .Title }}.md
+var DefaultTmpl = `+++ # {{ .TitleSlug }}.md
 title = "{{ .Title }}"
 created_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
 modified_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
@@ -21,7 +21,7 @@ modified_at = "{{ dateFormat "2006-01-02T15:04:05Z07:00" .Date }}"
 {{ .Content }}
 `
 
-const DefaultFilenameTmpl = "{{ makeSlug .Title }}.md"
+const DefaultFilenameTmpl = "{{ .TitleSlug }}.md"
 
 func DateFormat(layout string, t time.Time) string {
 	return t.Format(layout)
