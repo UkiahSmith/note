@@ -85,11 +85,11 @@ func GetFirstLineFromTemplateFile(fname string) (string, error) {
 // ExtractTemplateFromLine takes a raw filename-template string, and returns a
 // string of only a valid go template.
 func ExtractTemplateFromLine(line string) (string, error) {
-	sString := strings.SplitN(line, "#", 2)
+	sString := strings.Split(line, "#")
 	if len(sString) < 2 {
 		return "", fmt.Errorf("No valid filename-template found in template first line.")
 	}
-	return strings.TrimSpace(sString[1]), nil
+	return strings.TrimSpace(sString[len(sString)-1]), nil
 }
 
 // FilenameFromTemplateStr takes a filename-template string and note data, then
