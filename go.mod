@@ -1,4 +1,4 @@
-module github.com/UkiahSmith/note
+module github.com/ukiahsmith/note
 
 go 1.14
 

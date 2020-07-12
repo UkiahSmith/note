@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/UkiahSmith/note.svg?branch=master)](https://travis-ci.com/UkiahSmith/note) [![Go Report Card](https://goreportcard.com/badge/github.com/ukiahsmith/note)](https://goreportcard.com/report/github.com/ukiahsmith/note)
+[![Build Status](https://travis-ci.com/ukiahsmith/note.svg?branch=master)](https://travis-ci.com/ukiahsmith/note) [![Go Report Card](https://goreportcard.com/badge/github.com/ukiahsmith/note)](https://goreportcard.com/report/github.com/ukiahsmith/note)
 
 # Note
 

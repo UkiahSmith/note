@@ -4,14 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/UkiahSmith/note"
 	"github.com/gosimple/slug"
 	flag "github.com/spf13/pflag"
+	"github.com/ukiahsmith/note"
 )
 
 const (
