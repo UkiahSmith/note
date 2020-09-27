@@ -88,10 +88,10 @@ Most of the time the `.Content` value will be empty, however it is still useful 
 
 #### Available template values
 
-`.Title` is the title of the note, either from the arguments, or input from the `--title` flag.
-`.TitleSlug` is the title normalized to a URL safe slug. 
-`.Date` is a Go time.Time data type.
-`.Content` is any content passed to note by using the `--content` flag.
+- `.Title` is the title of the note, either from the arguments, or input from the `--title` flag.
+- `.TitleSlug` is the title normalized to a URL safe string, suitable as a filename. 
+- `.Date` is a Go time.Time data type.
+- `.Content` is any content passed to note by using the `--content` flag.
 
 
 #### Available template functions
