@@ -18,6 +18,12 @@ const (
 	exitFail = 1
 )
 
+var (
+	buildVersion   string = "dev"
+	buildTimestamp string = ""
+	buildHash      string = ""
+)
+
 var log = duolog.New(os.Stderr, "Note", 0)
 
 func main() {
@@ -34,7 +40,7 @@ func run(args []string, stdout io.Writer) error {
 
 	fset.Usage = func() {
 		fmt.Print(`
-Note is a templating tool for note taking.
+Note, a templating tool for note taking.
 
 Usage:
 	note [options] <Title of note>
@@ -60,11 +66,22 @@ Note:
 	fset.StringVar(&noteD.Title, "title", "", "Use this to pre-populate the title variable in a template.")
 	fset.StringVar(&noteD.Content, "content", "", "Use this to pre-populate the content variable in a template.")
 	var tempDate *string = fset.String("date", "", "Use this to pre-populate the date variable in a template.")
+	var showVersion *bool = fset.BoolP("version", "v", false, "Display the vesion information.")
 
 	err = fset.Parse(args[1:])
 	if err != nil {
 		log.Infof("error parsing arguments: %v", err)
 		os.Exit(1)
+	}
+
+	if *showVersion {
+		fmt.Println("Note, a templating tool for note taking.")
+		fmt.Println("Version:    ", buildVersion)
+		if !strings.HasPrefix(buildVersion, "dev") {
+			fmt.Println("Build date: ", buildTimestamp)
+			fmt.Println("Build hash: ", buildHash)
+		}
+		os.Exit(0)
 	}
 
 	if noteD.Title == "" {
