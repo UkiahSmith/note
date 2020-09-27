@@ -12,7 +12,7 @@ func Test_FilenameFromFile(t *testing.T) {
 	}
 	data := Data{Date: date, Title: "My test note "}
 
-	out := FilenameFromFile("test_template.note", data)
+	out := FilenameFromFile("testdata/test_template.note", data)
 
 	if err != nil || out != "19851026__my-test-note.md" {
 		t.Errorf("FilenameFromFile failed: %w", err)
@@ -26,7 +26,7 @@ func Test_FilenameFromFile_EmptyFilename(t *testing.T) {
 	}
 	data := Data{Date: date, Title: "My test note "}
 
-	got := FilenameFromFile("test_template_empty-filename.note", data)
+	got := FilenameFromFile("testdata/test_template_empty-filename.note", data)
 	want := "my-test-note.md"
 
 	if err != nil || got != want {
@@ -41,7 +41,22 @@ func Test_FilenameFromFile_MultiFilename(t *testing.T) {
 	}
 	data := Data{Date: date, Title: "My test note "}
 
-	got := FilenameFromFile("test_template_multi-filename.note", data)
+	got := FilenameFromFile("testdata/test_template_multi-filename.note", data)
+	want := "19851026__my-test-note.md"
+
+	if err != nil || got != want {
+		t.Errorf("FilenameFromFile failed, expected %s got %s : %s", want, got, err)
+	}
+}
+
+func Test_FileFromFile_MultiFilename(t *testing.T) {
+	date, err := time.Parse("20060102", "19851026")
+	if err != nil {
+		t.Fatalf("error initializing date: %s", err)
+	}
+	data := Data{Date: date, Title: "My test note "}
+
+	got := FilenameFromFile("testdata/test_template_multi-filename.note", data)
 	want := "19851026__my-test-note.md"
 
 	if err != nil || got != want {
@@ -50,7 +65,7 @@ func Test_FilenameFromFile_MultiFilename(t *testing.T) {
 }
 
 func Test_GetFirstLineFromTemplateFile(t *testing.T) {
-	out, err := GetFirstLineFromTemplateFile("test_template.note")
+	out, err := GetFirstLineFromTemplateFile("testdata/test_template.note")
 	if err != nil {
 		t.Errorf("GetFirstLineFromTemplateFile error: %s", err)
 	}

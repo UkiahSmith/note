@@ -24,4 +24,4 @@ clean: #Remove all build artifacts.
 	go clean ./...
 
 test: #Run the test suite.
-	if [[ -x $$(command -v gotest) ]]; then gotest -tags=debug ./... ; else go test -tags=debug ./... ; fi
+	@if [[ -x $$(command -v gotest) ]]; then gotest -tags=debug ./... ; else go test -tags=debug ./... ; fi
