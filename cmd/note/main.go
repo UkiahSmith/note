@@ -25,7 +25,7 @@ var (
 var log = duolog.New(os.Stderr, "Note", 0)
 
 func main() {
-	if err := run(os.Args, os.Stdout); err != nil {
+	if err := run(os.Args[1:], os.Stdout); err != nil {
 		log.Info(err)
 		os.Exit(exitFail)
 	}
@@ -67,7 +67,7 @@ Note:
 	var tempDate *string = fset.String("date", "", "Use this to pre-populate the date variable in a template.")
 	var showVersion *bool = fset.BoolP("version", "v", false, "Display the vesion information.")
 
-	err = fset.Parse(args[1:])
+	err = fset.Parse(args)
 	if err != nil {
 		log.Infof("error parsing arguments: %v", err)
 		os.Exit(1)
