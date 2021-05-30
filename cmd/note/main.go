@@ -6,8 +6,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"text/template"
-	"time"
 
 	flag "github.com/spf13/pflag"
 	"github.com/ukiahsmith/duolog"
@@ -62,7 +60,8 @@ Note:
 	}
 
 	var templateFile *string = fset.StringP("template", "t", "", "The file to use as a template")
-	var filenameTemplate *string = fset.StringP("filename", "", "", "A valid Go template used to format the note's filename. e.g. {{ .TitleSlug }}.md")
+	var filenameTemplate *string = fset.StringP("filename-format", "", "", "A valid Go template used to format the note's filename. e.g. {{ .TitleSlug }}.md")
+	var editor *string = fset.StringP("editor", "e", "", "The text editor you want to open the generated note.")
 	fset.StringVar(&noteD.Title, "title", "", "Use this to pre-populate the title variable in a template.")
 	fset.StringVar(&noteD.Content, "content", "", "Use this to pre-populate the content variable in a template.")
 	var tempDate *string = fset.String("date", "", "Use this to pre-populate the date variable in a template.")
@@ -93,68 +92,35 @@ Note:
 		return errors.New("error: Title is required")
 	}
 
-	{
-		noteD.Date = time.Now()
-		if *tempDate != "" {
-			var t time.Time
-			t, err = time.Parse("2006-01-02T15:04:05Z07:00", *tempDate)
-			if err != nil {
-				t, err = time.Parse("2006-01-02 15:04:05", *tempDate)
-				if err != nil {
-					t, err = time.Parse("2006-01-02", *tempDate)
-					if err != nil {
-						log.Infof("error parsing time format 2006-01-02: %v", err)
-					}
-				}
-			}
-			if !t.IsZero() {
-				noteD.Date = t
-			}
+	err = noteD.ParseDate(*tempDate)
+	if err != nil {
+		fmt.Printf("error: date is invalid. %s is not parsable.\n", *tempDate)
+		os.Exit(0)
+	}
+
+	var ed string
+	if editor != nil {
+		ed = strings.TrimSpace(*editor)
+	} else {
+		ed = os.Getenv("EDITOR")
+		if ed == "" {
+			fset.Usage()
+			fmt.Printf("\n\nerror: '-e' '--editor' or $EDITOR not set.\n")
+			os.Exit(0)
 		}
 	}
 
-	ed := os.Getenv("EDITOR")
-	if ed == "" {
-		fset.Usage()
-		return errors.New("error: $EDITOR not set.")
-	}
-
-	// use the supplied template, or fallback to the default template
-	var tmpl *template.Template
-	if *templateFile == "" {
-		tmpl, err = template.New("note").Funcs(note.Tfuncs).Parse(note.DefaultTmpl)
-	} else {
-		tmpl, err = template.New(*templateFile).Funcs(note.Tfuncs).ParseFiles(*templateFile)
-	}
+	err = noteD.SetTemplateFile(*templateFile)
 	if err != nil {
 		fset.Usage()
-		return fmt.Errorf("error finding template: %w", err)
+		fmt.Printf("\n\nerror: %s\n", err)
+		os.Exit(0)
 	}
 
-	// use the supplied filename-template, then fallback to a filename-template
-	// in the note template, then fallback to the defaultly formatted filename.
-	var fname string
-	switch {
-	case *filenameTemplate != "":
-		fname, err = note.FilenameFromTemplateStr(*filenameTemplate, noteD)
-		if err != nil {
-			fset.Usage()
-			log.Debugf("error with default filenameTemplate: %s", err)
-			return err
-		}
-	case *templateFile != "":
-		if *templateFile != "" {
-			// returns a filename using the note.DefaultFilenameTmpl if there is no valid filename-template in the note-template.
-			fname = note.FilenameFromFile(*templateFile, noteD)
-			log.Debugf("got to using custom template with -t, fname is \"%s\" after being set with note.FilenameFromFile", fname)
-		}
-	default:
-		fname, err = note.FilenameFromTemplateStr(note.DefaultFilenameTmpl, noteD)
-		if err != nil {
-			fset.Usage()
-			log.Debugf("error with default filenameTemplate: %s", err)
-			return err
-		}
+	fname, err := noteD.GetFilename(*filenameTemplate)
+	if err != nil {
+		fmt.Printf("\n\nerror: %s\n", err)
+		os.Exit(0)
 	}
 
 	var writer io.WriteCloser
@@ -174,16 +140,15 @@ Note:
 		return nil
 	}
 
-	defer writer.Close()
-
-	err = tmpl.Execute(writer, noteD)
+	err = noteD.Execute(writer)
 	if err != nil {
 		fset.Usage()
 		return fmt.Errorf("error executing template: %w", err)
 	}
 
+	writer.Close()
+
 	note.RunEditor(ed, fname)
-	fmt.Println("Created file: ", fname)
 
 	return nil
 }
