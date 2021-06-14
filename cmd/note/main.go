@@ -99,7 +99,7 @@ Note:
 	}
 
 	var ed string
-	if editor != nil {
+	if *editor != "" {
 		ed = strings.TrimSpace(*editor)
 	} else {
 		ed = os.Getenv("EDITOR")
@@ -148,7 +148,11 @@ Note:
 
 	writer.Close()
 
-	note.RunEditor(ed, fname)
+	err = note.RunEditor(ed, fname)
+	if err != nil {
+		fset.Usage()
+		return err
+	}
 
 	return nil
 }
