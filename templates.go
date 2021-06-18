@@ -3,7 +3,6 @@ package note
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 	"text/template"
@@ -38,30 +37,33 @@ var Tfuncs template.FuncMap = map[string]interface{}{
 
 // FilenameFromFile takes a file, extracts and formats a filename-template and
 // returns it as a string.
-func FilenameFromFile(fname string, noteData Data) string {
+func FilenameFromFile(fname string, noteData Data) (string, error) {
 	firstLine, err := GetFirstLineFromTemplateFile(fname)
 	if err != nil {
-		log.Debugf("in FilenameFromFile, continuing: %s", err)
+		return "", err
 	}
 
 	filenameTemplate, err := ExtractTemplateFromLine(firstLine)
-	if err != nil {
-		log.Debugf("in FilenameFromFile, continuing: %s", err)
+	if err != nil && err != ErrNoFilenameTemplate {
+		return "", err
 	}
 
 	filename, err := FilenameFromTemplateStr(filenameTemplate, noteData)
 	if err != nil {
 		log.Debugf("in FilenameFromFile, retrurned empty: %s", err)
-		return ""
+		return "", err
 	}
 
-	return filename
+	return filename, nil
 }
 
 // GetFirstLineFromTemplateFile opens the named file and returns the very first line.
 func GetFirstLineFromTemplateFile(fname string) (string, error) {
 	_, err := os.Stat(fname)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return "", ErrNotFound
+		}
 		return "", err
 	}
 
@@ -87,7 +89,7 @@ func GetFirstLineFromTemplateFile(fname string) (string, error) {
 func ExtractTemplateFromLine(line string) (string, error) {
 	sString := strings.Split(line, "#")
 	if len(sString) < 2 {
-		return "", fmt.Errorf("No valid filename-template found in template first line.")
+		return "", ErrNoFilenameTemplate
 	}
 	return strings.TrimSpace(sString[len(sString)-1]), nil
 }

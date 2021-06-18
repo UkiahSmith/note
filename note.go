@@ -22,7 +22,8 @@ func (e Err) Error() string {
 }
 
 const (
-	ErrNotFound = Err("Error: Not Found")
+	ErrNotFound           = Err("Error: Not Found")
+	ErrNoFilenameTemplate = Err("Error: No filename template found in first line")
 )
 
 type Data struct {
@@ -85,8 +86,11 @@ func (d *Data) SetTemplateFile(templateFilename string) error {
 			return err
 		}
 	} else {
-		d.Meta.FilenameNOX = FilenameFromFile(templateFilename, *d)
+		d.Meta.FilenameNOX, err = FilenameFromFile(templateFilename, *d)
 		log.Debugf("SetTemplateFile: using custom template with -t, d.Meta.FilenameNOX is \"%s\" after being set with note.FilenameFromFile", d.Meta.FilenameNOX)
+		if err != nil {
+			return err
+		}
 
 		d.tmpl, err = template.New(path.Base(templateFilename)).Funcs(Tfuncs).ParseFiles(templateFilename)
 		if err != nil {
