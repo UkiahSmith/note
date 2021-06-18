@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	flag "github.com/spf13/pflag"
@@ -136,7 +137,7 @@ Note:
 		fset.Usage()
 		return fmt.Errorf("error with the file: %w", err)
 	default:
-		note.RunEditor(ed, fname)
+		runEditor(ed, fname)
 		return nil
 	}
 
@@ -148,10 +149,28 @@ Note:
 
 	writer.Close()
 
-	err = note.RunEditor(ed, fname)
+	err = runEditor(ed, fname)
 	if err != nil {
 		fset.Usage()
 		return err
+	}
+
+	return nil
+}
+
+func runEditor(editor, filename string) error {
+	path, err := exec.LookPath(editor)
+	if err != nil {
+		return fmt.Errorf("RunEditor: failed to find editor: %s", err)
+	}
+
+	cmd := exec.Command(path, filename)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+
+	err = cmd.Run()
+	if err != nil {
+		return fmt.Errorf("error running editor: %s", err)
 	}
 
 	return nil

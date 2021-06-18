@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path"
 	"text/template"
 	"time"
@@ -133,29 +132,4 @@ func (d Data) GetFilename(filenameTemplate string) (string, error) {
 
 func (d Data) Execute(wr io.Writer) error {
 	return d.tmpl.Execute(wr, d)
-}
-
-func RunEditor(editor, filename string) error {
-	switch "" {
-	case editor:
-		return fmt.Errorf("RunEditor: editor must not be empty:")
-	case filename:
-		return fmt.Errorf("RunEditor: filename must not be empty:")
-	}
-
-	path, err := exec.LookPath(editor)
-	if err != nil {
-		return fmt.Errorf("RunEditor: failed to find editor: %s", err)
-	}
-
-	cmd := exec.Command(path, filename)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-
-	err = cmd.Run()
-	if err != nil {
-		return fmt.Errorf("error running editor: %s", err)
-	}
-
-	return nil
 }
