@@ -133,3 +133,27 @@ func (d Data) GetFilename(filenameTemplate string) (string, error) {
 func (d Data) Execute(wr io.Writer) error {
 	return d.tmpl.Execute(wr, d)
 }
+
+func (d Data) WriteFile(fname string) error {
+
+	var writer io.WriteCloser
+	_, err := os.Stat(fname)
+	switch err.(type) {
+	case *os.PathError:
+		writer, err = os.Create(fname)
+		if err != nil {
+			return fmt.Errorf("os.PathError with file %s : %w", fname, err)
+		}
+	case error:
+		return fmt.Errorf("error writing the file: %w", err)
+	}
+
+	err = d.Execute(writer)
+	if err != nil {
+		return fmt.Errorf("error executing template: %w", err)
+	}
+
+	writer.Close()
+
+	return nil
+}

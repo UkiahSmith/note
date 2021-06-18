@@ -124,30 +124,11 @@ Note:
 		os.Exit(0)
 	}
 
-	var writer io.WriteCloser
-	_, err = os.Stat(fname)
-	switch err.(type) {
-	case *os.PathError:
-		writer, err = os.Create(fname)
-		if err != nil {
-			fset.Usage()
-			return fmt.Errorf("os.PathError with file %s : %w", fname, err)
-		}
-	case error:
-		fset.Usage()
-		return fmt.Errorf("error with the file: %w", err)
-	default:
-		runEditor(ed, fname)
-		return nil
-	}
-
-	err = noteD.Execute(writer)
+	err = noteD.WriteFile(fname)
 	if err != nil {
 		fset.Usage()
-		return fmt.Errorf("error executing template: %w", err)
+		return fmt.Errorf("error with file %s : %w", fname, err)
 	}
-
-	writer.Close()
 
 	err = runEditor(ed, fname)
 	if err != nil {
